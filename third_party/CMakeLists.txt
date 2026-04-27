@@ -5,16 +5,20 @@ project(ai_sdk_third_party)
 # Set the third party directory variable for all subdirectories
 set(AI_SDK_THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR} CACHE PATH "Third party directory root")
 
-# Add zlib (needed by httplib)
-add_subdirectory(zlib-cmake)
+# Add zlib (needed by httplib) — skip if already provided by parent project (e.g. vcpkg)
+if(NOT TARGET ZLIB::ZLIB)
+    add_subdirectory(zlib-cmake)
+endif()
 
-# Add brotli (needed by httplib)
-add_subdirectory(brotli-cmake)
+# Add brotli (needed by httplib) — skip if already provided
+if(NOT TARGET Brotli::common)
+    add_subdirectory(brotli-cmake)
+endif()
 
 # Add httplib
 add_subdirectory(httplib-cmake)
 
-# Add nlohmann_json
+# Add nlohmann_json — nlohmann_json-cmake already guards against duplicate targets
 add_subdirectory(nlohmann_json-cmake)
 
 # Add concurrentqueue

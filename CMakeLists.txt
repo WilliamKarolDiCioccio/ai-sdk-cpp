@@ -230,7 +230,11 @@ if(BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
-# Installation rules
+# Installation rules — only when this is the top-level project (not a subdirectory)
+if(NOT PROJECT_IS_TOP_LEVEL)
+    return()
+endif()
+
 include(GNUInstallDirs)
 
 # Install all targets (httplib is internal only, not installed)
