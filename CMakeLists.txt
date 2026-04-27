@@ -45,6 +45,7 @@ set(HTTPLIB_COMPILE_DEFS
 add_library(ai-sdk-cpp-core)
 add_library(ai-sdk-cpp-openai)
 add_library(ai-sdk-cpp-anthropic)
+add_library(ai-sdk-cpp-ollama)
 add_library(ai-sdk-cpp INTERFACE)
 
 # Set library aliases
@@ -52,11 +53,13 @@ add_library(ai::sdk ALIAS ai-sdk-cpp)
 add_library(ai::core ALIAS ai-sdk-cpp-core)
 add_library(ai::openai ALIAS ai-sdk-cpp-openai)
 add_library(ai::anthropic ALIAS ai-sdk-cpp-anthropic)
+add_library(ai::ollama ALIAS ai-sdk-cpp-ollama)
 
 # Configure all component libraries
 configure_ai_component(ai-sdk-cpp-core)
 configure_ai_component(ai-sdk-cpp-openai)
 configure_ai_component(ai-sdk-cpp-anthropic)
+configure_ai_component(ai-sdk-cpp-ollama)
 
 # Configure main interface library
 target_include_directories(ai-sdk-cpp 
@@ -100,8 +103,16 @@ set(ANTHROPIC_SOURCES
     src/providers/anthropic/anthropic_factory.cpp
 )
 
+set(OLLAMA_SOURCES
+    src/providers/ollama/ollama_client.cpp
+    src/providers/ollama/ollama_request_builder.cpp
+    src/providers/ollama/ollama_stream.cpp
+    src/providers/ollama/ollama_factory.cpp
+)
+
 target_sources(ai-sdk-cpp-openai PRIVATE ${OPENAI_SOURCES})
 target_sources(ai-sdk-cpp-anthropic PRIVATE ${ANTHROPIC_SOURCES})
+target_sources(ai-sdk-cpp-ollama PRIVATE ${OLLAMA_SOURCES})
 
 # Link dependencies
 target_link_libraries(ai-sdk-cpp-core
@@ -124,7 +135,7 @@ foreach(provider openai anthropic)
             $<BUILD_INTERFACE:httplib::httplib>
             $<BUILD_INTERFACE:concurrentqueue>
     )
-    
+
     # Set component availability and HTTP definitions
     string(TOUPPER ${provider} PROVIDER_UPPER)
     target_compile_definitions(ai-sdk-cpp-${provider}
@@ -134,6 +145,23 @@ foreach(provider openai anthropic)
             ${HTTPLIB_COMPILE_DEFS}
     )
 endforeach()
+
+# Ollama extends the OpenAI-compatible layer; depends on openai privately
+target_link_libraries(ai-sdk-cpp-ollama
+    PUBLIC
+        ai::core
+        nlohmann_json::nlohmann_json
+    PRIVATE
+        $<BUILD_INTERFACE:httplib::httplib>
+        $<BUILD_INTERFACE:concurrentqueue>
+        ai-sdk-cpp-openai
+)
+target_compile_definitions(ai-sdk-cpp-ollama
+    PUBLIC
+        AI_SDK_HAS_OLLAMA=1
+    PRIVATE
+        ${HTTPLIB_COMPILE_DEFS}
+)
 
 # Core needs HTTP definitions too
 target_compile_definitions(ai-sdk-cpp-core
@@ -147,6 +175,7 @@ target_link_libraries(ai-sdk-cpp
         ai::core
         ai::openai
         ai::anthropic
+        ai::ollama
 )
 
 # Define all component availability for main library
@@ -154,10 +183,11 @@ target_compile_definitions(ai-sdk-cpp
     INTERFACE
         AI_SDK_HAS_OPENAI=1
         AI_SDK_HAS_ANTHROPIC=1
+        AI_SDK_HAS_OLLAMA=1
 )
 
 # List of all concrete component targets
-set(COMPONENT_TARGETS ai-sdk-cpp-core ai-sdk-cpp-openai ai-sdk-cpp-anthropic)
+set(COMPONENT_TARGETS ai-sdk-cpp-core ai-sdk-cpp-openai ai-sdk-cpp-anthropic ai-sdk-cpp-ollama)
 
 # Common compile options
 if(MSVC)

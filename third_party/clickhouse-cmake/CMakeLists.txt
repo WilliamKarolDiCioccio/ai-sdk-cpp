@@ -6,6 +6,12 @@ if(NOT BUILD_TESTS)
     return()
 endif()
 
+# Skip gracefully when the submodule hasn't been initialized
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../clickhouse-cpp/CMakeLists.txt")
+    message(STATUS "ClickHouse C++ submodule not found - skipping (run: git submodule update --init third_party/clickhouse-cpp)")
+    return()
+endif()
+
 # Add ClickHouse client as subdirectory
 add_subdirectory(../clickhouse-cpp clickhouse-cpp EXCLUDE_FROM_ALL)
 

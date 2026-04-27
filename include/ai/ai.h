@@ -12,6 +12,10 @@
 #include "anthropic.h"
 #endif
 
+#ifdef AI_SDK_HAS_OLLAMA
+#include "ollama.h"
+#endif
+
 // Type definitions
 #include "types/client.h"
 #include "types/enums.h"
