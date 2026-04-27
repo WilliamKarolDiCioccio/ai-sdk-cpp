@@ -1,6 +1,6 @@
 # AI SDK CPP
 
-The AI SDK CPP is a modern C++ toolkit designed to help you build AI-powered applications with popular model providers like OpenAI and Anthropic. It provides a unified, easy-to-use API that abstracts away the complexity of different provider implementations.
+The AI SDK CPP is a modern C++ toolkit designed to help you build AI-powered applications with popular model providers like OpenAI, Anthropic, and Ollama. It provides a unified, easy-to-use API that abstracts away the complexity of different provider implementations.
 
 ## Motivation
 
@@ -67,6 +67,59 @@ int main() {
 
     return 0;
 }
+```
+
+#### Ollama Integration (Local / Self-hosted LLMs)
+
+Run any model locally with [Ollama](https://ollama.com) — no API key required.
+
+```cpp
+#include <ai/ollama.h>
+#include <iostream>
+
+int main() {
+    // Connects to http://localhost:11434 by default
+    auto client = ai::ollama::create_client();
+
+    auto result = client.generate_text({
+        .model = ai::ollama::models::kLlama32,  // or any string: "gemma3:4b", etc.
+        .prompt = "Why is the sky blue?"
+    });
+
+    if (result) {
+        std::cout << result->text << std::endl;
+    }
+
+    return 0;
+}
+```
+
+For a remote or authenticated Ollama deployment:
+
+```cpp
+// Plain custom URL (e.g. LAN server)
+auto client = ai::ollama::create_client("http://192.168.1.100:11434");
+
+// Remote proxy with Bearer token
+auto client = ai::ollama::create_client_with_key(
+    "https://ollama.example.com", std::getenv("OLLAMA_API_KEY"));
+```
+
+`supports_model()` always returns `true` — Ollama accepts any model that is
+pulled on the target instance. Use `ollama pull <model>` before running.
+
+To start Ollama with Docker:
+
+```bash
+# Start the service
+docker compose -f test-services/ollama/docker-compose.yaml up -d
+
+# Pull a model
+docker exec ai-sdk-cpp-ollama ollama pull llama3.2
+
+# Point the SDK at it
+export OLLAMA_BASE_URL=http://localhost:11434
+export OLLAMA_TEST_MODEL=llama3.2
 ```
 
 #### Streaming Responses
@@ -310,7 +363,7 @@ See the [OpenRouter example](examples/openrouter_example.cpp) for a complete dem
 
 ### Currently Supported
 
-- ✅ **Text Generation**: Generate text completions with OpenAI and Anthropic models
+- ✅ **Text Generation**: Generate text completions with OpenAI, Anthropic, and Ollama models
 - ✅ **Streaming**: Real-time streaming of generated content
 - ✅ **Multi-turn Conversations**: Support for conversation history
 - ✅ **Error Handling**: Comprehensive error handling with optional types
@@ -323,6 +376,7 @@ See the [OpenRouter example](examples/openrouter_example.cpp) for a complete dem
 
 ### Coming Soon
 
+- ✅ **Ollama**: Local / self-hosted LLM support via the OpenAI-compatible endpoint
 - 🚧 **Additional Providers**: Google, Cohere, and other providers
 - 🚧 **Embeddings**: Text embedding support
 - 🚧 **Image Generation**: Support for image generation models

@@ -1,0 +1,34 @@
+services:
+  ollama:
+    image: ollama/ollama
+    container_name: ai-sdk-cpp-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/version"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+# After starting, pull a model:
+#   docker exec ai-sdk-cpp-ollama ollama pull llama3.2:1b
+#
+# For the integration tests, set:
+#   OLLAMA_BASE_URL=http://localhost:11434
+#   OLLAMA_TEST_MODEL=llama3.2:1b   (or whichever model you pulled)
+#
+# GPU pass-through (optional, significantly faster):
+#   Add to the 'ollama' service:
+#     deploy:
+#       resources:
+#         reservations:
+#           devices:
+#             - driver: nvidia
+#               count: all
+#               capabilities: [gpu]
+
+volumes:
+  ollama_data:

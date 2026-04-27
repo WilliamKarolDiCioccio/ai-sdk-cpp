@@ -1,3 +1,65 @@
+# ---------------------------------------------------------------------------
+# Ollama-specific test executable
+# Does not require ClickHouse; uses a longer timeout for local LLM inference.
+# ---------------------------------------------------------------------------
+add_executable(ai_ollama_tests
+    unit/ollama_client_test.cpp
+    integration/ollama_integration_test.cpp
+)
+
+target_link_libraries(ai_ollama_tests
+    PRIVATE
+        ai-sdk-cpp-ollama
+        ai-sdk-cpp-openai   # OllamaRequestBuilder extends OpenAIRequestBuilder
+        ai-sdk-cpp-core
+        httplib::httplib
+        concurrentqueue
+        GTest::gtest
+        GTest::gtest_main
+        GTest::gmock
+)
+
+target_include_directories(ai_ollama_tests
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/utils
+        ${CMAKE_SOURCE_DIR}/src
+)
+
+set_target_properties(ai_ollama_tests PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+)
+
+target_compile_options(ai_ollama_tests PRIVATE
+    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra>
+    $<$<CXX_COMPILER_ID:MSVC>:/W3>
+)
+
+target_compile_definitions(ai_ollama_tests PRIVATE
+    AI_SDK_TESTING=1
+    AI_SDK_HAS_OLLAMA=1
+    AI_SDK_HAS_OPENAI=1
+    CPPHTTPLIB_OPENSSL_SUPPORT=1
+    CPPHTTPLIB_BROTLI_SUPPORT=1
+    CPPHTTPLIB_THREAD_POOL_COUNT=8
+)
+
+include(GoogleTest)
+gtest_discover_tests(ai_ollama_tests
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    PROPERTIES
+        TIMEOUT 120   # Local LLM inference can be slow
+)
+
+# ---------------------------------------------------------------------------
+# Full test suite (requires ClickHouse)
+# ---------------------------------------------------------------------------
+
+if(NOT TARGET ClickHouse::Client)
+    message(STATUS "ClickHouse::Client not available - skipping ai_tests (initialize third_party/clickhouse-cpp submodule to enable)")
+    return()
+endif()
+
 # Test executable for AI SDK C++
 add_executable(ai_tests
     # Unit tests
