@@ -3,8 +3,8 @@
 #include "ai/logger.h"
 #include "ai/ollama.h"
 #include "ollama_request_builder.h"
+#include "ollama_response_parser.h"
 #include "ollama_stream.h"
-#include "providers/openai/openai_response_parser.h"
 
 #include <memory>
 
@@ -24,7 +24,7 @@ OllamaClient::OllamaClient(const std::string& base_url,
               .extra_headers = {},
               .retry_config = {}},
           std::make_unique<OllamaRequestBuilder>(),
-          std::make_unique<openai::OpenAIResponseParser>()) {
+          std::make_unique<OllamaResponseParser>()) {
   ai::logger::log_debug("Ollama client initialized with base_url: {}", base_url);
 }
 
@@ -42,7 +42,7 @@ OllamaClient::OllamaClient(const std::string& base_url,
               .extra_headers = {},
               .retry_config = retry_config},
           std::make_unique<OllamaRequestBuilder>(),
-          std::make_unique<openai::OpenAIResponseParser>()) {
+          std::make_unique<OllamaResponseParser>()) {
   ai::logger::log_debug(
       "Ollama client initialized with base_url: {} and custom retry config",
       base_url);

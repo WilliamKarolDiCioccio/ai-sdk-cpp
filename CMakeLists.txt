@@ -106,6 +106,7 @@ set(ANTHROPIC_SOURCES
 set(OLLAMA_SOURCES
     src/providers/ollama/ollama_client.cpp
     src/providers/ollama/ollama_request_builder.cpp
+    src/providers/ollama/ollama_response_parser.cpp
     src/providers/ollama/ollama_stream.cpp
     src/providers/ollama/ollama_factory.cpp
 )
